@@ -1,0 +1,35 @@
+flowchart LR
+    subgraph Actors
+        G[Guest]
+        C[Customer]
+        A[Admin]
+    end
+    subgraph Shelf
+        UC1(Browse / search catalog)
+        UC2(Ask the AI Librarian)
+        UC3(Register / login / reset)
+        UC4(Manage reading list)
+        UC5(Add to cart / checkout)
+        UC6(Track / cancel orders)
+        UC7(Write / like reviews)
+        UC8(Manage profile / addresses / cards)
+        UC9(Manage books)
+        UC10(Manage users)
+        UC11(Update order status)
+        UC12(Moderate reviews)
+    end
+    G --> UC1
+    G --> UC2
+    G --> UC3
+    C --> UC1
+    C --> UC2
+    C --> UC4
+    C --> UC5
+    C --> UC6
+    C --> UC7
+    C --> UC8
+    A --> UC9
+    A --> UC10
+    A --> UC11
+    A --> UC12
+    A --> UC1

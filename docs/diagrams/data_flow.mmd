@@ -1,0 +1,23 @@
+flowchart TD
+    U[User tap / input] --> W[Flutter Widgets<br/>features/*]
+    W --> S[AppState<br/>ChangeNotifier]
+    S --> R[Repo<br/>all SQL, parameterised]
+    R --> DB[(SQLite on device<br/>sqflite)]
+    DB --> R
+    R --> S
+    S --> W
+
+    W --> CC[ChatController]
+    CC --> OE[Offline engine<br/>TF-IDF + constraints]
+    OE --> CC
+    CC --> GS[GeminiService]
+    GS -->|HTTPS, key via dart-define| API[Gemini API<br/>or Cloudflare Worker]
+    API --> GS
+    GS -->|reply or null| CC
+    CC -->|null => fallback| OE
+    CC --> W
+
+    subgraph Never leaves the device
+        DB
+        OE
+    end

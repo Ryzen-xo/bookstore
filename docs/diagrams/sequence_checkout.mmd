@@ -1,0 +1,26 @@
+sequenceDiagram
+    actor U as Customer
+    participant CP as CheckoutPage
+    participant S as AppState
+    participant R as Repo
+    participant DB as SQLite
+
+    U->>CP: Choose address + payment, tap Place order
+    CP->>S: run(placeOrder)
+    S->>R: placeOrder(userId, address, payment, coupon)
+    R->>DB: BEGIN TRANSACTION
+    R->>DB: Read cart + stock
+    alt cart empty or stock short
+        R->>DB: ROLLBACK
+        R-->>S: throw AppError
+        S-->>CP: friendly toast
+    else all good
+        R->>DB: Insert order + items + Placed event
+        R->>DB: Decrease stock, increase sold
+        R->>DB: Clear cart
+        R->>DB: COMMIT
+        R-->>S: orderId
+        S->>S: refreshCart()
+        S-->>CP: success
+        CP->>U: ORDER PLACED stamp + tracking number
+    end

@@ -1,0 +1,54 @@
+classDiagram
+    class AppState {
+        +Repo repo
+        +AppUser user
+        +ThemeMode themeMode
+        +int cartCount
+        +Set wishIds
+        +init()
+        +login()
+        +addToCart()
+        +toggleWishlist()
+        +openBook()
+    }
+    class Repo {
+        +Database db
+        +login()
+        +books()
+        +cart()
+        +placeOrder()
+        +reviews()
+        +adminStats()
+    }
+    class Book {
+        +int id
+        +String title
+        +double price
+        +int stock
+        +color()
+        +toAiMap()
+    }
+    class ChatController {
+        +GeminiService gemini
+        +OfflineEngine engine
+        +List entries
+        +send()
+        +retry()
+        +clear()
+    }
+    class GeminiService {
+        +bool configured
+        +ask() AiReply
+    }
+    class OfflineEngine {
+        +setBooks()
+        +parse() QueryConstraints
+        +respond() OfflineReply
+        +candidates()
+    }
+    AppState --> Repo
+    Repo --> Book
+    AppState --> ChatController
+    ChatController --> GeminiService
+    ChatController --> OfflineEngine
+    OfflineEngine --> Book

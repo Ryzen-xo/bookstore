@@ -1,0 +1,146 @@
+/// The complete SQLite schema: 14 tables + 4 indexes.
+///
+/// Foreign keys are ON. Order items reference books with NO ACTION so order
+/// history is protected (deleting a sold book fails friendly); cart/wishlist/
+/// review rows cascade so removing an unsold book is clean.
+library;
+
+const String kSchema = '''
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  provider TEXT NOT NULL DEFAULT 'email',
+  is_admin INTEGER NOT NULL DEFAULT 0,
+  is_active INTEGER NOT NULL DEFAULT 1,
+  phone TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS authors (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS genres (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS books (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  author_id INTEGER NOT NULL REFERENCES authors(id),
+  genre_id INTEGER NOT NULL REFERENCES genres(id),
+  description TEXT NOT NULL DEFAULT '',
+  price REAL NOT NULL,
+  pages INTEGER NOT NULL DEFAULT 0,
+  published TEXT NOT NULL DEFAULT '',
+  stock INTEGER NOT NULL DEFAULT 0,
+  sold INTEGER NOT NULL DEFAULT 0,
+  cover_color TEXT NOT NULL DEFAULT '#B5732E',
+  tags TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS addresses (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  label TEXT NOT NULL DEFAULT 'Home',
+  full_name TEXT NOT NULL DEFAULT '',
+  line1 TEXT NOT NULL DEFAULT '',
+  city TEXT NOT NULL DEFAULT '',
+  region TEXT NOT NULL DEFAULT '',
+  postal_code TEXT NOT NULL DEFAULT '',
+  country TEXT NOT NULL DEFAULT '',
+  phone TEXT NOT NULL DEFAULT '',
+  is_default INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS payment_methods (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  brand TEXT NOT NULL,
+  last4 TEXT NOT NULL,
+  exp_month INTEGER NOT NULL,
+  exp_year INTEGER NOT NULL,
+  is_default INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS password_resets (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token TEXT NOT NULL UNIQUE,
+  expires_at TEXT NOT NULL,
+  used INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS cart_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  book_id INTEGER NOT NULL REFERENCES books(id) ON DELETE CASCADE,
+  qty INTEGER NOT NULL DEFAULT 1,
+  UNIQUE(user_id, book_id)
+);
+
+CREATE TABLE IF NOT EXISTS wishlist_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  book_id INTEGER NOT NULL REFERENCES books(id) ON DELETE CASCADE,
+  UNIQUE(user_id, book_id)
+);
+
+CREATE TABLE IF NOT EXISTS reviews (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  book_id INTEGER NOT NULL REFERENCES books(id) ON DELETE CASCADE,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  rating INTEGER NOT NULL,
+  body TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL,
+  UNIQUE(book_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS review_likes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  review_id INTEGER NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE(review_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS orders (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  status TEXT NOT NULL DEFAULT 'Placed',
+  total REAL NOT NULL,
+  ship_name TEXT NOT NULL DEFAULT '',
+  ship_line1 TEXT NOT NULL DEFAULT '',
+  ship_city TEXT NOT NULL DEFAULT '',
+  payment TEXT NOT NULL DEFAULT '',
+  tracking_no TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS order_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  order_id INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  book_id INTEGER NOT NULL REFERENCES books(id),
+  title TEXT NOT NULL,
+  unit_price REAL NOT NULL,
+  qty INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS order_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  order_id INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  status TEXT NOT NULL,
+  note TEXT NOT NULL DEFAULT '',
+  at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_books_genre ON books(genre_id);
+CREATE INDEX IF NOT EXISTS idx_books_author ON books(author_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_book ON reviews(book_id);
+CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);
+''';

@@ -1,0 +1,27 @@
+sequenceDiagram
+    actor U as User
+    participant CC as ChatController
+    participant OE as OfflineEngine
+    participant GS as GeminiService
+    participant API as Gemini / Worker
+    participant R as Repo
+
+    U->>CC: send("short sci-fi under $15")
+    CC->>OE: candidates(text, 12)
+    OE-->>CC: top 12 real books
+    CC->>R: latestOrder (id, status, tracking only)
+    CC->>GS: ask(history, text, candidates, storeFacts)
+    alt key set and network OK
+        GS->>API: POST generateContent (JSON mode)
+        API-->>GS: JSON reply
+        GS->>GS: validate ids vs candidates (drop hallucinations)
+        GS-->>CC: AiReply
+        CC->>R: booksByIds(valid ids)
+        CC-->>U: reply + reading-list cards (ONLINE)
+    else no key / timeout / 429 / bad JSON
+        GS-->>CC: null
+        CC->>OE: respond(text)
+        OE-->>CC: OfflineReply(text, books, why)
+        CC-->>U: reply + cards (OFFLINE MODE)
+    end
+    Note over U,CC: Add / Save only happen after an explicit confirmation tap

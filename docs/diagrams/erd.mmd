@@ -1,0 +1,80 @@
+erDiagram
+    users ||--o{ addresses : has
+    users ||--o{ payment_methods : has
+    users ||--o{ password_resets : requests
+    users ||--o{ cart_items : holds
+    users ||--o{ wishlist_items : saves
+    users ||--o{ reviews : writes
+    users ||--o{ orders : places
+    users ||--o{ review_likes : likes
+    authors ||--o{ books : writes
+    genres ||--o{ books : categorizes
+    books ||--o{ cart_items : in
+    books ||--o{ wishlist_items : in
+    books ||--o{ reviews : receives
+    books ||--o{ order_items : "sold as"
+    reviews ||--o{ review_likes : gets
+    orders ||--o{ order_items : contains
+    orders ||--o{ order_events : tracks
+
+    users {
+        int id PK
+        string name
+        string email UK
+        string password_hash
+        string provider
+        int is_admin
+        int is_active
+        string phone
+        string created_at
+    }
+    books {
+        int id PK
+        string title
+        int author_id FK
+        int genre_id FK
+        string description
+        real price
+        int pages
+        string published
+        int stock
+        int sold
+        string cover_color
+        string tags
+        string created_at
+    }
+    orders {
+        int id PK
+        int user_id FK
+        string status
+        real total
+        string ship_name
+        string ship_line1
+        string ship_city
+        string payment
+        string tracking_no
+        string created_at
+    }
+    order_items {
+        int id PK
+        int order_id FK
+        int book_id FK
+        string title
+        real unit_price
+        int qty
+    }
+    order_events {
+        int id PK
+        int order_id FK
+        string status
+        string note
+        string at
+    }
+    reviews {
+        int id PK
+        int book_id FK
+        int user_id FK
+        int rating
+        string body
+        string created_at
+    }

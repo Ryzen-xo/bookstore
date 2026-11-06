@@ -1,0 +1,9 @@
+# Shelf uses the reference pubspec (no flutter_lints package), so this is a
+# self-contained analyzer config. It keeps the default error/warning set.
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+
+linter:
+  rules:
+    - avoid_print
